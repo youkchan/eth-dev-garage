@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata = {
   title: "Ethereum Dev Garage | ETH Tools for Developers",
   description: "Simple cryptocurrency tools for Ethereum developers. Convert units, view transactions, and analyze blockchain data with ease.",
-  keywords: "USDC unit converter, USDC unit calculator, Ethereum unit calculator, eth converter, wei to ether, gwei calculator, crypto unit converter, eth developer tools",
+  keywords: "USDC unit converter, USDC unit calculator, Ethereum unit calculator, eth converter, wei to ether, gwei calculator, crypto unit converter, eth developer tools, ethereum gas calculator, crypto conversion tool, blockchain unit converter",
   openGraph: {
     title: "Ethereum Dev Garage | ETH Tools for Developers",
     description: "Simple cryptocurrency tools for Ethereum developers. Convert units, view transactions, and analyze blockchain data with ease.",
