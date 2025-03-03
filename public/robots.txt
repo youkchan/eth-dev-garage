@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://eth-dev-garage.vercel.app/sitemap.xml 

@@ -138,8 +138,12 @@ export default function UnitConverter() {
   return (
     <div className="bg-white shadow-sm rounded-lg p-6">
       <div className="space-y-1 mb-6">
-        <h2 className="text-2xl font-bold text-gray-600">ETH / USDC Unit Converter</h2>
-        <p className="text-gray-400">Easily convert cryptocurrency units</p>
+        <h2 className="text-2xl font-bold text-gray-600">
+          ETH & USDC Unit Converter
+        </h2>
+        <p className="text-gray-400">
+          Convert between Wei, Gwei, Ether and USDC units instantly. The perfect calculator for crypto transactions and development.
+        </p>
       </div>
       
       {error && (
