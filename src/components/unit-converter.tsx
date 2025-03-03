@@ -180,6 +180,7 @@ export default function UnitConverter() {
                 value={ethInput[unit]}
                 onChange={(e) => handleEthInputChange(e, unit)}
                 placeholder={`Enter ${unit} value`}
+                aria-label={`${unit} value input`}
                 className="w-full p-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black"
               />
             </div>
