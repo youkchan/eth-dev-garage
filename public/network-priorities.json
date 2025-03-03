@@ -1,0 +1,15 @@
+{
+  "priorityNetworks": [
+    "ethereum",
+    "arbitrum",
+    "optimism",
+    "polygon",
+    "base",
+    "avalanche",
+    "binance",
+    "scroll",
+    "taiko",
+    "linea",
+    "zksync"
+  ]
+} 

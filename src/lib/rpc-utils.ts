@@ -9,13 +9,30 @@ export interface NetworkInfo {
 
 export type NetworksMap = Record<string, NetworkInfo>;
 
+// 優先ネットワークの設定を読み込む関数
+async function loadPriorityNetworks() {
+  try {
+    // 優先ネットワークの設定を読み込む
+    const prioritiesResponse = await fetch('/network-priorities.json');
+    const prioritiesData = await prioritiesResponse.json();
+    return prioritiesData.priorityNetworks || [];
+  } catch (error) {
+    console.error('Error loading priority networks:', error);
+    // デフォルト値を返す
+    return ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base'];
+  }
+}
+
 // RPCデータとチェーンIDマッピングを取得する関数
 export async function fetchChainData(): Promise<{
   chainIds: Record<string, string>;
   explorers: Record<string, string>;
-  networkList: string[]; // 追加: ネットワークリスト
+  networkList: string[];
 }> {
   try {
+    // 優先ネットワークを読み込む
+    const priorityNetworks = await loadPriorityNetworks();
+    
     // DefiLlamaのchainIdsデータを取得
     const chainIdsResponse = await fetch('https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js');
     if (!chainIdsResponse.ok) {
@@ -52,23 +69,18 @@ export async function fetchChainData(): Promise<{
     
     const chainIds = extractObject(chainIdsText);
     
-    // 主要なネットワークのリスト
-    // 注: すべてのネットワークを含めると多すぎるため、主要なものだけをフィルタリング
-    const popularNetworks = [
-      'ethereum', 'arbitrum', 'optimism', 'polygon', 'base', 
-      'avalanche', 'binance', 'fantom', 'gnosis', 'zksync'
-    ];
-    
     // ネットワークリストを作成（chainIdsから取得したすべてのネットワーク）
     const allNetworks = new Set<string>();
     Object.values(chainIds).forEach(value => {
       allNetworks.add(value as string);
     });
     
-    // 人気のあるネットワークを優先的に含め、それらを先頭に配置
+    // 優先ネットワークを先頭に配置し、残りをアルファベット順に並べる
     const networkList = [
-      ...popularNetworks.filter(network => allNetworks.has(network)),
-      ...Array.from(allNetworks).filter(network => !popularNetworks.includes(network))
+      ...priorityNetworks.filter(network => allNetworks.has(network)),
+      ...Array.from(allNetworks)
+        .filter(network => !priorityNetworks.includes(network))
+        .sort()
     ];
     
     // エクスプローラーURLのマッピングを作成

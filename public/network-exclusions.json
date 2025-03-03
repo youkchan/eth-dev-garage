@@ -1,0 +1,13 @@
+{
+  "excludedNetworks": [
+    "aurora",
+    "celo",
+    "harmony",
+    "klaytn",
+    "metis",
+    "moonbeam",
+    "moonriver",
+    "okexchain",
+    "telos"
+  ]
+} 

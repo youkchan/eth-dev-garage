@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ethers } from "ethers"
-import { Loader2, Network } from "lucide-react"
+import { Loader2, Network, ChevronDown } from "lucide-react"
 import { useRpcData, findWorkingRpc } from "../lib/rpc-utils"
 
 export default function TransactionViewer() {
@@ -11,9 +11,56 @@ export default function TransactionViewer() {
   const [transaction, setTransaction] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  // RPCデータを取得
-  const { networksData, networkList, loading: loadingNetworks, error: networkError } = useRpcData();
+  const [excludedNetworks, setExcludedNetworks] = useState<Set<string>>(new Set())
+  const [filteredNetworkList, setFilteredNetworkList] = useState<string[]>([])
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const { networksData, networkList, loading: networksLoading } = useRpcData()
+
+  // 除外ネットワークの設定を読み込む
+  useEffect(() => {
+    async function loadExcludedNetworks() {
+      try {
+        const response = await fetch('/network-exclusions.json')
+        const data = await response.json()
+        setExcludedNetworks(new Set(data.excludedNetworks || []))
+      } catch (error) {
+        console.error('Error loading excluded networks:', error)
+        setExcludedNetworks(new Set())
+      }
+    }
+    
+    loadExcludedNetworks()
+  }, [])
+
+  // ネットワークリストをフィルタリング
+  useEffect(() => {
+    if (networkList && networkList.length > 0) {
+      const filtered = networkList.filter(network => !excludedNetworks.has(network))
+      setFilteredNetworkList(filtered)
+      
+      // デフォルトネットワークを設定（現在のネットワークが除外された場合）
+      if (excludedNetworks.has(network) && filtered.length > 0) {
+        setNetwork(filtered[0])
+      } else if (!network && filtered.length > 0) {
+        setNetwork(filtered[0])
+      }
+    }
+  }, [networkList, excludedNetworks, network])
+
+  // ドロップダウン外のクリックを検出
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const fetchTransaction = async () => {
     if (!txHash || loading || !networksData) return
@@ -49,7 +96,7 @@ export default function TransactionViewer() {
   };
 
   // ネットワークデータの読み込み中の表示
-  if (loadingNetworks) {
+  if (networksLoading) {
     return (
       <div className="bg-white shadow-sm rounded-lg p-6">
         <div className="flex items-center justify-center p-4">
@@ -61,19 +108,16 @@ export default function TransactionViewer() {
   }
 
   // ネットワークデータの読み込みエラー
-  if (networkError) {
+  if (error && !transaction) {
     return (
       <div className="bg-white shadow-sm rounded-lg p-6">
         <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          <p>Error loading network data: {networkError.message}</p>
-          <p className="mt-2">Please try refreshing the page.</p>
+          <p>Error: {error}</p>
+          <p className="mt-2">Please try again or select a different network.</p>
         </div>
       </div>
     );
   }
-
-  // ネットワークリストをアルファベット順にソート
-  const sortedNetworks = [...(networkList || [])].sort((a, b) => a.localeCompare(b));
 
   return (
     <div className="bg-white shadow-sm rounded-lg p-6">
@@ -85,24 +129,44 @@ export default function TransactionViewer() {
       <div className="space-y-4">
         <div>
           <label htmlFor="network" className="block text-sm font-medium text-gray-600 mb-1">
-            Select Network
+            Network
           </label>
-          <select
-            id="network"
-            value={network}
-            onChange={(e) => setNetwork(e.target.value)}
-            className="w-full p-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black"
-          >
-            {networksData && sortedNetworks.map(networkKey => {
-              const info = networksData[networkKey];
-              if (!info) return null;
-              return (
-                <option key={networkKey} value={networkKey}>
-                  {info.name}
-                </option>
-              );
-            })}
-          </select>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              type="button"
+              className="w-full p-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black bg-white flex items-center justify-between"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              disabled={networksLoading}
+              aria-haspopup="listbox"
+              aria-expanded={isDropdownOpen}
+            >
+              <span>{networksData?.[network]?.name || network}</span>
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-blue-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                <ul className="py-1" role="listbox">
+                  {filteredNetworkList.map((networkKey) => (
+                    <li
+                      key={networkKey}
+                      className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${
+                        network === networkKey ? 'bg-blue-100 font-medium' : ''
+                      }`}
+                      onClick={() => {
+                        setNetwork(networkKey);
+                        setIsDropdownOpen(false);
+                      }}
+                      role="option"
+                      aria-selected={network === networkKey}
+                    >
+                      {networksData?.[networkKey]?.name || networkKey}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
