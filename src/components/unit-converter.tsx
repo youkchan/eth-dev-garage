@@ -142,7 +142,7 @@ export default function UnitConverter() {
           ETH & USDC Unit Converter
         </h2>
         <p className="text-gray-400">
-          Convert between Wei, Gwei, Ether and USDC units instantly. The perfect calculator for crypto transactions and development.
+          Convert between Wei, Gwei, Ether and USDC units instantly. The calculator for crypto transactions and development.
         </p>
       </div>
       
