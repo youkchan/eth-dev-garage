@@ -1,12 +1,29 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import UnitConverter from "@/components/unit-converter"
 import TransactionViewer from "@/components/transaction-viewer"
-import { Calculator, Search, Heart } from "lucide-react"
+import BalanceChecker from "@/components/balance-checker"
+import { Calculator, Search, Wallet, Heart } from "lucide-react"
+
+type Tool = "converter" | "transaction" | "balance"
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"converter" | "transaction">("converter")
+  const [activeTool, setActiveTool] = useState<Tool>("converter")
+
+  // LocalStorageから最後に使用したツールを読み込む
+  useEffect(() => {
+    const savedTool = localStorage.getItem("activeTool") as Tool | null
+    if (savedTool) {
+      setActiveTool(savedTool)
+    }
+  }, [])
+
+  // アクティブなツールをLocalStorageに保存
+  const handleToolChange = (tool: Tool) => {
+    setActiveTool(tool)
+    localStorage.setItem("activeTool", tool)
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-100 to-white flex flex-col">
@@ -17,31 +34,43 @@ export default function Home() {
           <div className="flex border-b border-gray-200">
             <button
               className={`py-2 px-4 ${
-                activeTab === "converter"
+                activeTool === "converter"
                   ? "border-b-2 border-blue-500 text-black-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
-              onClick={() => setActiveTab("converter")}
+              onClick={() => handleToolChange("converter")}
             >
               <Calculator className="w-5 h-5 mr-2 inline-block" />
               Unit Converter
             </button>
             <button
               className={`py-2 px-4 ${
-                activeTab === "transaction"
+                activeTool === "transaction"
                   ? "border-b-2 border-blue-500 text-black-600"
                   : "text-gray-500 hover:text-gray-700"
               }`}
-              onClick={() => setActiveTab("transaction")}
+              onClick={() => handleToolChange("transaction")}
             >
               <Search className="w-5 h-5 mr-2 inline-block" />
               Transaction Viewer
             </button>
+            <button
+              className={`py-2 px-4 ${
+                activeTool === "balance"
+                  ? "border-b-2 border-blue-500 text-black-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => handleToolChange("balance")}
+            >
+              <Wallet className="w-5 h-5 mr-2 inline-block" />
+              Balance Checker
+            </button>
           </div>
         </div>
 
-        {activeTab === "converter" && <UnitConverter />}
-        {activeTab === "transaction" && <TransactionViewer />}
+        {activeTool === "converter" && <UnitConverter />}
+        {activeTool === "transaction" && <TransactionViewer />}
+        {activeTool === "balance" && <BalanceChecker />}
       </div>
       
       <footer className="mt-12 py-6 bg-gray-100 border-t border-gray-200">
