@@ -86,6 +86,28 @@ jobs:
             # パターンが見つからない場合はファイル全体をコピー
             cp temp/full_extraRpcs.js temp/extraRpcs.js
           fi
+          
+          # trackingDetailsの項目を削除
+          echo "Removing trackingDetails from extraRpcs.js"
+          # macOS: カンマで終わるケースと閉じ括弧で終わるケースの両方に対応
+          # sed -i '' 's/trackingDetails: [^,}]*,\{0,1\}//g' temp/extraRpcs.js
+          sed -i 's/trackingDetails: [^,}]*,\{0,1\}//g' temp/extraRpcs.js
+          
+          # 末尾の「const allExtraRpcs = mergeDeep(llamaNodesRpcs, extraRpcs); export default allExtraRpcs;」を削除
+          echo "Removing 'const allExtraRpcs = mergeDeep(llamaNodesRpcs, extraRpcs); export default allExtraRpcs;' from extraRpcs.js"
+          # ファイルの末尾から「const allExtraRpcs」を含む行以降を削除
+          sed -i '/const allExtraRpcs/,$d' temp/extraRpcs.js
+          # 最後の行が「};」で終わるようにする
+          echo "};$(cat temp/extraRpcs.js | grep -q '};$' || echo '')" >> temp/extraRpcs.js.tmp
+          mv temp/extraRpcs.js.tmp temp/extraRpcs.js
+          
+          # 削除後のファイルの内容を確認（デバッグ用）
+          echo "===== extraRpcs.js after removing trackingDetails and allExtraRpcs ====="
+          head -n 20 temp/extraRpcs.js
+          echo "===== end of preview ====="
+          echo "===== extraRpcs.js last 10 lines ====="
+          tail -n 10 temp/extraRpcs.js
+          echo "===== end of preview ====="
       
       - name: Check for structural changes
         id: check_structure

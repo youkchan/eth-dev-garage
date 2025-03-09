@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+// ローカルのデータファイルをインポート
+import chainIdsData from '../data/chain-ids.json';
+import { extraRpcs as extraRpcsData } from '../data/extraRpcs.js';
+import chainsData from '../data/chains.json';
 
 export interface NetworkInfo {
   name: string;
@@ -33,41 +37,8 @@ export async function fetchChainData(): Promise<{
     // 優先ネットワークを読み込む
     const priorityNetworks = await loadPriorityNetworks();
     
-    // DefiLlamaのchainIdsデータを取得
-    const chainIdsResponse = await fetch('https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js');
-    if (!chainIdsResponse.ok) {
-      throw new Error('Failed to fetch chain IDs data');
-    }
-    
-    const chainIdsText = await chainIdsResponse.text();
-    
-    // JavaScriptオブジェクトを抽出
-    const extractObject = (content: string) => {
-      try {
-        // export default { ... } の部分を抽出
-        const startIdx = content.indexOf('{');
-        const endIdx = content.lastIndexOf('}') + 1;
-        
-        if (startIdx === -1 || endIdx === -1) {
-          throw new Error('Could not extract object from content');
-        }
-        
-        const objStr = content.substring(startIdx, endIdx);
-        // JSON形式に変換
-        const jsonStr = objStr
-          .replace(/\/\/.*$/gm, '') // コメントを削除
-          .replace(/,(\s*[}\]])/g, '$1') // 末尾のカンマを削除
-          .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":') // キーを引用符で囲む
-          .replace(/'/g, '"'); // シングルクォートをダブルクォートに変換
-        
-        return JSON.parse(jsonStr);
-      } catch (e) {
-        console.error('Failed to extract object:', e);
-        return {};
-      }
-    };
-    
-    const chainIds = extractObject(chainIdsText);
+    // ローカルのchainIdsデータを使用
+    const chainIds = chainIdsData;
     
     // ネットワークリストを作成（chainIdsから取得したすべてのネットワーク）
     const allNetworks = new Set<string>();
@@ -77,7 +48,7 @@ export async function fetchChainData(): Promise<{
     
     // 優先ネットワークを先頭に配置し、残りをアルファベット順に並べる
     const networkList = [
-      ...priorityNetworks.filter(network => allNetworks.has(network)),
+      ...priorityNetworks.filter((network: string) => allNetworks.has(network)),
       ...Array.from(allNetworks)
         .filter(network => !priorityNetworks.includes(network))
         .sort()
@@ -99,45 +70,28 @@ export async function fetchChainData(): Promise<{
         explorers[network] = 'https://optimistic.etherscan.io/tx/';
       } else if (network === 'base') {
         explorers[network] = 'https://basescan.org/tx/';
-      } else if (network === 'avalanche') {
-        explorers[network] = 'https://snowtrace.io/tx/';
-      } else if (network === 'fantom') {
-        explorers[network] = 'https://ftmscan.com/tx/';
-      } else if (network === 'gnosis') {
-        explorers[network] = 'https://gnosisscan.io/tx/';
-      } else if (network === 'zksync') {
-        explorers[network] = 'https://explorer.zksync.io/tx/';
+      } else if (network === 'sepolia') {
+        explorers[network] = 'https://sepolia.etherscan.io/tx/';
+      } else if (network === 'holesky') {
+        explorers[network] = 'https://holesky.etherscan.io/tx/';
       } else {
-        // その他のネットワークの場合は一般的なパターンを試す
-        explorers[network] = `https://${network}scan.com/tx/`;
+        // その他のネットワークはデフォルトのエクスプローラーを設定
+        explorers[network] = `https://${network}scan.io/tx/`;
       }
     });
     
     return { chainIds, explorers, networkList };
   } catch (error) {
     console.error('Error fetching chain data:', error);
-    
-    // フォールバックデータ
+    // フォールバック値を返す
     return {
-      chainIds: {
-        '1': 'ethereum',
-        '10': 'optimism',
-        '137': 'polygon',
-        '42161': 'arbitrum',
-        '8453': 'base',
-        '11155111': 'sepolia',
-        '17000': 'holesky'
-      },
+      chainIds: { '1': 'ethereum', '11155111': 'sepolia', '17000': 'holesky' },
       explorers: {
         'ethereum': 'https://etherscan.io/tx/',
-        'optimism': 'https://optimistic.etherscan.io/tx/',
-        'polygon': 'https://polygonscan.com/tx/',
-        'arbitrum': 'https://arbiscan.io/tx/',
-        'base': 'https://basescan.org/tx/',
         'sepolia': 'https://sepolia.etherscan.io/tx/',
         'holesky': 'https://holesky.etherscan.io/tx/'
       },
-      networkList: ['ethereum', 'sepolia', 'holesky', 'arbitrum', 'optimism', 'polygon', 'base']
+      networkList: ['ethereum', 'sepolia', 'holesky']
     };
   }
 }
@@ -151,13 +105,11 @@ export async function fetchRpcData(): Promise<{
     // チェーンIDとエクスプローラーデータを取得
     const { chainIds, explorers, networkList } = await fetchChainData();
     
-    // DefiLlamaのRPCデータを直接取得
-    const response = await fetch('https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/extraRpcs.js');
-    if (!response.ok) {
-      throw new Error('Failed to fetch RPC data');
-    }
+    // ローカルのextraRpcsデータを使用
+    const extraRpcs = extraRpcsData;
     
-    const text = await response.text();
+    // ローカルのchainsデータを使用
+    const chains = chainsData;
     
     // 必要なネットワークのRPCを手動で抽出する方法に変更
     const networksMap: NetworksMap = {};
@@ -200,63 +152,75 @@ export async function fetchRpcData(): Promise<{
       ],
       blockExplorer: 'https://holesky.etherscan.io/tx/'
     };
-
-    // 残りのネットワークを処理
-    networkList.forEach(networkKey => {
-      // Sepolia と Holesky は既に追加済みなのでスキップ
-      if (networkKey === 'sepolia' || networkKey === 'holesky') {
-        return;
-      }
-
-      // チェーンIDに対応するRPCを正規表現で検索
-      const chainId = networkKeyToChainId[networkKey];
-      if (!chainId) return; // チェーンIDが見つからない場合はスキップ
-
-      const regex = new RegExp(`${chainId}:\\s*{[^}]*rpcs:\\s*\\[([^\\]]+)\\]`, 's');
-      const match = text.match(regex);
+    
+    // chainsデータからRPC URLを抽出
+    chains.forEach((chain: any) => {
+      const chainId = chain.chainId;
+      const networkKey = chainIdToNetworkKey[chainId.toString()];
       
-      if (match && match[1]) {
-        // RPCのURLを抽出
-        const rpcSection = match[1];
+      if (networkKey && chain.rpc && chain.rpc.length > 0) {
+        // 既存のネットワーク情報があれば更新、なければ新規作成
+        if (!networksMap[networkKey]) {
+          networksMap[networkKey] = {
+            name: getNetworkNameFromKey(networkKey),
+            chainId: chainId,
+            rpcs: chain.rpc.filter((url: string) => 
+              url && !url.includes('${') && !url.includes('wss://')
+            ),
+            blockExplorer: explorers[networkKey] || ""
+          };
+        } else {
+          // 既存のRPCリストに新しいRPCを追加
+          const existingRpcs = new Set(networksMap[networkKey].rpcs);
+          chain.rpc.forEach((url: string) => {
+            if (url && !url.includes('${') && !url.includes('wss://')) {
+              existingRpcs.add(url);
+            }
+          });
+          networksMap[networkKey].rpcs = Array.from(existingRpcs);
+        }
+      }
+    });
+    
+    // extraRpcsデータからRPC URLを抽出
+    Object.entries(extraRpcs).forEach(([chainId, rpcData]) => {
+      const networkKey = chainIdToNetworkKey[chainId];
+      
+      if (networkKey) {
+        // RPC URLを抽出
         const rpcUrls: string[] = [];
         
-        // 文字列形式のRPC URLを抽出
-        const stringRpcRegex = /'([^']+)'/g;
-        let stringMatch;
-        while ((stringMatch = stringRpcRegex.exec(rpcSection)) !== null) {
-          rpcUrls.push(stringMatch[1]);
-        }
-        
-        // オブジェクト形式のRPC URLを抽出
-        const objectRpcRegex = /url:\s*'([^']+)'/g;
-        let objectMatch;
-        while ((objectMatch = objectRpcRegex.exec(rpcSection)) !== null) {
-          rpcUrls.push(objectMatch[1]);
-        }
-        
-        // ダブルクォート形式のRPC URLも抽出
-        const doubleQuoteRpcRegex = /"([^"]+)"/g;
-        let doubleQuoteMatch;
-        while ((doubleQuoteMatch = doubleQuoteRpcRegex.exec(rpcSection)) !== null) {
-          // 明らかにURLでないものを除外
-          const url = doubleQuoteMatch[1];
-          if (url.startsWith('http') && !url.includes('privacy')) {
-            rpcUrls.push(url);
+        if (typeof rpcData === 'object' && rpcData !== null) {
+          // rpcsプロパティがある場合
+          const rpcs = (rpcData as any).rpcs;
+          if (Array.isArray(rpcs)) {
+            rpcs.forEach(rpc => {
+              if (typeof rpc === 'string' && !rpc.includes('${') && !rpc.includes('wss://')) {
+                rpcUrls.push(rpc);
+              } else if (typeof rpc === 'object' && rpc !== null && typeof rpc.url === 'string') {
+                if (!rpc.url.includes('${') && !rpc.url.includes('wss://')) {
+                  rpcUrls.push(rpc.url);
+                }
+              }
+            });
           }
         }
         
-        // ネットワーク名を抽出（オプション）
-        const nameRegex = new RegExp(`${chainId}:\\s*{[^}]*name:\\s*["']([^"']+)["']`, 's');
-        const nameMatch = text.match(nameRegex);
-        const name = nameMatch ? nameMatch[1] : networkKey.charAt(0).toUpperCase() + networkKey.slice(1);
-        
         if (rpcUrls.length > 0) {
-          networksMap[networkKey] = {
-            name,
-            chainId: chainId,
-            rpcs: rpcUrls,
-            blockExplorer: explorers[networkKey] || ""
-          };
+          // 既存のネットワーク情報があれば更新、なければ新規作成
+          if (!networksMap[networkKey]) {
+            networksMap[networkKey] = {
+              name: getNetworkNameFromKey(networkKey),
+              chainId: parseInt(chainId, 10),
+              rpcs: rpcUrls,
+              blockExplorer: explorers[networkKey] || ""
+            };
+          } else {
+            // 既存のRPCリストに新しいRPCを追加
+            const existingRpcs = new Set(networksMap[networkKey].rpcs);
+            rpcUrls.forEach(url => existingRpcs.add(url));
+            networksMap[networkKey].rpcs = Array.from(existingRpcs);
+          }
         }
       }
     });
@@ -268,7 +232,7 @@ export async function fetchRpcData(): Promise<{
       'sepolia',
       'holesky'
     ]));
-
+    
     return {
       networks: networksMap,
       networkList: finalNetworkList
@@ -276,12 +240,12 @@ export async function fetchRpcData(): Promise<{
   } catch (error) {
     console.error('Error fetching RPC data:', error);
     
-    // フォールバックデータ
-    const fallbackNetworks = {
+    // フォールバック値を返す
+    const fallbackNetworksMap: NetworksMap = {
       'ethereum': {
         name: 'Ethereum',
         chainId: 1,
-        rpcs: ['https://eth.llamarpc.com'],
+        rpcs: ['https://eth.llamarpc.com', 'https://cloudflare-eth.com'],
         blockExplorer: 'https://etherscan.io/tx/'
       },
       'sepolia': {
@@ -295,38 +259,13 @@ export async function fetchRpcData(): Promise<{
         chainId: 17000,
         rpcs: ['https://ethereum-holesky.publicnode.com', 'https://holesky.blockpi.network/v1/rpc/public'],
         blockExplorer: 'https://holesky.etherscan.io/tx/'
-      },
-      'arbitrum': {
-        name: 'Arbitrum',
-        chainId: 42161,
-        rpcs: ['https://arb.llamarpc.com'],
-        blockExplorer: 'https://arbiscan.io/tx/'
-      },
-      'optimism': {
-        name: 'Optimism',
-        chainId: 10,
-        rpcs: ['https://mainnet.optimism.io'],
-        blockExplorer: 'https://optimistic.etherscan.io/tx/'
-      },
-      'polygon': {
-        name: 'Polygon',
-        chainId: 137,
-        rpcs: ['https://polygon-rpc.com'],
-        blockExplorer: 'https://polygonscan.com/tx/'
-      },
-      'base': {
-        name: 'Base',
-        chainId: 8453,
-        rpcs: ['https://mainnet.base.org'],
-        blockExplorer: 'https://basescan.org/tx/'
       }
     };
     
-    // 必ずSepoliaとHoleskyを含むネットワークリストを返す
-    const fallbackNetworkList = ['ethereum', 'sepolia', 'holesky', 'arbitrum', 'optimism', 'polygon', 'base'];
+    const fallbackNetworkList = ['ethereum', 'sepolia', 'holesky'];
     
     return {
-      networks: fallbackNetworks,
+      networks: fallbackNetworksMap,
       networkList: fallbackNetworkList
     };
   }
@@ -385,12 +324,18 @@ export async function findWorkingRpc(rpcs: string[]): Promise<string> {
         
         clearTimeout(timeoutId);
         
-        if (!response.ok) throw new Error('RPC request failed');
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(`JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+        }
         
         return rpc;
       } catch (error) {
-        console.warn(`RPC ${rpc} failed:`, error);
-        throw new Error(`RPC ${rpc} failed`);
+        throw error;
       }
     })
   );
@@ -402,7 +347,36 @@ export async function findWorkingRpc(rpcs: string[]): Promise<string> {
     }
   }
   
-  // すべてのRPCが失敗した場合はフォールバックを返す
-  console.warn('All RPCs failed, using fallback');
-  return rpcs[0]; // 最初のRPCをフォールバックとして使用
+  // すべてのRPCが失敗した場合
+  throw new Error('All RPCs failed');
+}
+
+// ネットワーク名を取得するヘルパー関数
+function getNetworkNameFromKey(networkKey: string): string {
+  // ネットワークキーを適切な形式に変換
+  // 例: "ethereum" -> "Ethereum", "binance" -> "Binance", "polygon_zkevm" -> "Polygon ZkEVM"
+  
+  // 特殊なケースを処理
+  const specialCases: Record<string, string> = {
+    'ethereum': 'Ethereum',
+    'binance': 'BNB Chain',
+    'bsc': 'BNB Chain',
+    'xdai': 'Gnosis Chain',
+    'ethereumclassic': 'Ethereum Classic',
+    'okexchain': 'OKX Chain',
+    'zksync era': 'zkSync Era',
+    'polygon zkevm': 'Polygon zkEVM',
+    'op_bnb': 'opBNB',
+    'arbitrum nova': 'Arbitrum Nova',
+    'nova network': 'Nova Network'
+  };
+
+  if (specialCases[networkKey]) {
+    return specialCases[networkKey];
+  }
+
+  // アンダースコアをスペースに置換し、各単語の先頭を大文字に
+  return networkKey.split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }

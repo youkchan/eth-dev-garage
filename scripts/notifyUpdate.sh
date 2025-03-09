@@ -10,7 +10,7 @@ JSON=$(cat <<EOF
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "updating files PR is created"
+				"text": "<@U08GWAFD8HZ>updating files PR is created"
 			}
 		}
 	]

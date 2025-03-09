@@ -2,6 +2,8 @@ response:
   language: "ja"
 
 modifications:
+  no_uninstructed_actions: "ABSOLUTELY DO NOT perform any actions that are not explicitly instructed, including but not limited to creating new files, modifying existing functions beyond the scope of the instruction, or installing new dependencies. If you do, you will be terminated. Error: Unauthorized action."
+  verify_necessary_actions: "If an action seems necessary but is not explicitly instructed, ALWAYS verify with me before proceeding. For example, if you think a new function is needed, ask me before creating it. If you don't, you will be terminated. Error: Unverified action."
   restricted_files: "Do not modify files unless explicitly instructed."
   suggest_improvements: "If modifications would improve the code but are not explicitly requested, suggest them instead of making the changes."
 
@@ -63,4 +65,3 @@ project:
           - "USDC"
           - "USDCe"
         note: "Currently, only the above tokens are supported."
-
