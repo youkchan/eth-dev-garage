@@ -28,87 +28,26 @@ jobs:
       - name: Create temporary directory
         run: mkdir -p temp
       
-      - name: Download chain-ids.json
+      - name: Make scripts executable
         run: |
-          # 一時ファイルにダウンロード
-          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js > temp/full_chainIds.js
-          
-          # export default を削除してJSONとして保存
-          cat temp/full_chainIds.js | sed 's/export default //' > temp/chain-ids.json
-          
-          # ファイルサイズを確認
-          echo "File size: $(wc -c < temp/chain-ids.json) bytes"
-          
-          # ファイルの内容を確認（デバッグ用）
-          echo "===== chain-ids.json content ====="
-          head -n 10 temp/chain-ids.json
-          echo "===== end of preview ====="
+          chmod +x ./scripts/download-chain-ids.sh
+          chmod +x ./scripts/download-chains.sh
+          chmod +x ./scripts/download-extra-rpcs.sh
+          chmod +x ./scripts/download-bridge-network-data.sh
+          chmod +x ./scripts/notifyError.sh
+          chmod +x ./scripts/notifyUpdate.sh
+      
+      - name: Download chain-ids.json
+        run: ./scripts/download-chain-ids.sh
       
       - name: Download chains.json
-        run: |
-          # 一時ファイルにダウンロード
-          curl -s https://chainid.network/chains.json > temp/full_chains.json
-          
-          # 必要なパラメータだけを抽出（chainId、nativeCurrency、rpc）
-          jq '[.[] | {chainId: .chainId, nativeCurrency: .nativeCurrency, rpc: .rpc}]' temp/full_chains.json > temp/chains.json
-          
-          # ファイルサイズを確認
-          echo "Original file size: $(wc -c < temp/full_chains.json) bytes"
-          echo "Reduced file size: $(wc -c < temp/chains.json) bytes"
-          
-          # ファイルの内容を確認（デバッグ用）
-          echo "===== chains.json content ====="
-          head -n 20 temp/chains.json
-          echo "===== end of preview ====="
+        run: ./scripts/download-chains.sh
       
       - name: Download extraRpcs.js
-        run: |
-          # 一時ファイルにダウンロード
-          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/extraRpcs.js > temp/full_extraRpcs.js
-          
-          # ファイルの内容を確認（デバッグ用）
-          echo "===== extraRpcs.js content ====="
-          head -n 20 temp/full_extraRpcs.js
-          echo "===== end of preview ====="
-          
-          # 必要な部分だけを抽出（export const extraRpcs = { ... }）
-          grep -n "export const extraRpcs = {" temp/full_extraRpcs.js || echo "Pattern not found"
-          
-          # 行番号を取得して抽出
-          START_LINE=$(grep -n "export const extraRpcs = {" temp/full_extraRpcs.js | cut -d: -f1)
-          
-          if [ -n "$START_LINE" ]; then
-            echo "Found 'export const extraRpcs = {' at line $START_LINE"
-            # 抽出して新しいファイルに保存
-            tail -n +$START_LINE temp/full_extraRpcs.js > temp/extraRpcs.js
-          else
-            echo "WARNING: Could not find 'export const extraRpcs = {' pattern"
-            # パターンが見つからない場合はファイル全体をコピー
-            cp temp/full_extraRpcs.js temp/extraRpcs.js
-          fi
-          
-          # trackingDetailsの項目を削除
-          echo "Removing trackingDetails from extraRpcs.js"
-          # macOS: カンマで終わるケースと閉じ括弧で終わるケースの両方に対応
-          # sed -i '' 's/trackingDetails: [^,}]*,\{0,1\}//g' temp/extraRpcs.js
-          sed -i 's/trackingDetails: [^,}]*,\{0,1\}//g' temp/extraRpcs.js
-          
-          # 末尾の「const allExtraRpcs = mergeDeep(llamaNodesRpcs, extraRpcs); export default allExtraRpcs;」を削除
-          echo "Removing 'const allExtraRpcs = mergeDeep(llamaNodesRpcs, extraRpcs); export default allExtraRpcs;' from extraRpcs.js"
-          # ファイルの末尾から「const allExtraRpcs」を含む行以降を削除
-          sed -i '/const allExtraRpcs/,$d' temp/extraRpcs.js
-          # 最後の行が「};」で終わるようにする
-          if ! grep -q '};$' temp/extraRpcs.js; then
-            echo "};" >> temp/extraRpcs.js
-          fi
-          
-          # 削除後のファイルの内容を確認（デバッグ用）
-          echo "===== extraRpcs.js after removing trackingDetails and allExtraRpcs ====="
-          head -n 20 temp/extraRpcs.js
-          echo "===== end of preview ====="
-          echo "===== extraRpcs.js last 10 lines ====="
-          tail -n 10 temp/extraRpcs.js
-          echo "===== end of preview ====="
+        run: ./scripts/download-extra-rpcs.sh
+      
+      - name: Download bridgeNetworkData.json
+        run: ./scripts/download-bridge-network-data.sh
       
       - name: Check for structural changes
         id: check_structure
@@ -129,13 +68,17 @@ jobs:
             CHANGED_FILES="chains.json $CHANGED_FILES"
           fi
           
+          # Check bridgeNetworkData.json structure
+          if ! jq empty temp/bridgeNetworkData.json 2>/dev/null; then
+            echo "bridgeNetworkData.json structure has changed"
+            CHANGED_FILES="bridgeNetworkData.json $CHANGED_FILES"
+          fi
+          
           echo "changed_files=${CHANGED_FILES}" >> $GITHUB_OUTPUT
       
       - name: Notify structure changes
         if: steps.check_structure.outputs.changed_files != ''
-        run: |
-          chmod +x ./scripts/notifyError.sh
-          ./scripts/notifyError.sh "${{ secrets.SLACK_SECRET }}" "${{ steps.check_structure.outputs.changed_files }}"
+        run: ./scripts/notifyError.sh "${{ secrets.SLACK_SECRET }}" "${{ steps.check_structure.outputs.changed_files }}"
         shell: bash
       
       - name: Check for content changes
@@ -187,6 +130,20 @@ jobs:
             HAS_CHANGES=true
           fi
           
+          # Check bridgeNetworkData.json
+          if [ -f "src/data/bridgeNetworkData.json" ]; then
+            if ! cmp -s "src/data/bridgeNetworkData.json" "temp/bridgeNetworkData.json"; then
+              echo "bridgeNetworkData.json has changes"
+              # diffの出力を制限（最初の10行だけ）
+              DIFF_OUTPUT="${DIFF_OUTPUT}bridgeNetworkData.json changes:\n$(diff -u src/data/bridgeNetworkData.json temp/bridgeNetworkData.json | head -n 10)\n...(truncated)...\n\n"
+              HAS_CHANGES=true
+            fi
+          else
+            echo "src/data/bridgeNetworkData.json does not exist, will create it"
+            DIFF_OUTPUT="${DIFF_OUTPUT}bridgeNetworkData.json is new\n"
+            HAS_CHANGES=true
+          fi
+          
           echo "has_changes=${HAS_CHANGES}" >> $GITHUB_OUTPUT
           echo "diff_output<<EOF" >> $GITHUB_OUTPUT
           echo "$DIFF_OUTPUT" >> $GITHUB_OUTPUT
@@ -208,9 +165,10 @@ jobs:
           cp temp/chain-ids.json src/data/chain-ids.json
           cp temp/chains.json src/data/chains.json
           cp temp/extraRpcs.js src/data/extraRpcs.js
+          cp temp/bridgeNetworkData.json src/data/bridgeNetworkData.json
           
           # Commit changes
-          git add src/data/chain-ids.json src/data/chains.json src/data/extraRpcs.js
+          git add src/data/chain-ids.json src/data/chains.json src/data/extraRpcs.js src/data/bridgeNetworkData.json
           git commit -m "Update chain data files $(date +%Y-%m-%d)"
           
           # Push branch
@@ -222,6 +180,7 @@ jobs:
             - chain-ids.json
             - chains.json
             - extraRpcs.js
+            - bridgeNetworkData.json
             
             Changes:
             \`\`\`
@@ -238,7 +197,5 @@ jobs:
       
       - name: Notify update
         if: steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          chmod +x ./scripts/notifyUpdate.sh
-          ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "Files have been updated: chain-ids.json, chains.json, extraRpcs.js"
+        run: ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "Files have been updated: chain-ids.json, chains.json, extraRpcs.js, bridgeNetworkData.json"
         shell: bash 
