@@ -1,0 +1,189 @@
+name: Update Chain Data
+
+# 毎日午前3時に実行
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  # 手動実行も可能
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-chain-data:
+    name: Update Chain Data Files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Create temporary directory
+        run: mkdir -p temp
+      
+      - name: Download chain-ids.json
+        run: |
+          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js | \
+          sed -n '/const chainIds = {/,/};/p' | \
+          sed '1s/const chainIds = //' | \
+          sed '$s/;//' > temp/chain-ids.json
+      
+      - name: Download chains.json
+        run: curl -s https://chainid.network/chains.json > temp/chains.json
+      
+      - name: Download extraRpcs.js
+        run: |
+          # 一時ファイルにダウンロード
+          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/extraRpcs.js > temp/full_extraRpcs.js
+          
+          # const extraRpcs = { ... }; の部分だけを抽出
+          grep -A 100000 "const extraRpcs = {" temp/full_extraRpcs.js | grep -B 100000 -m 1 "export default extraRpcs" | grep -v "export default extraRpcs" > temp/extracted_extraRpcs.js
+          
+          # const extraRpcs = の部分を削除して純粋なJSONにする
+          sed '1s/const extraRpcs = //' temp/extracted_extraRpcs.js | sed '$s/;//' > temp/extraRpcs.json
+      
+      - name: Check for structural changes
+        id: check_structure
+        run: |
+          CHANGED_FILES=""
+          
+          # Check chain-ids.json structure
+          if ! jq empty temp/chain-ids.json 2>/dev/null; then
+            echo "chain-ids.json structure has changed"
+            CHANGED_FILES="chain-ids.json $CHANGED_FILES"
+          fi
+          
+          # Check chains.json structure
+          if ! jq empty temp/chains.json 2>/dev/null; then
+            echo "chains.json structure has changed"
+            CHANGED_FILES="chains.json $CHANGED_FILES"
+          fi
+          
+          # Check extraRpcs.json structure
+          if ! jq empty temp/extraRpcs.json 2>/dev/null; then
+            echo "extraRpcs.js structure has changed"
+            CHANGED_FILES="extraRpcs.js $CHANGED_FILES"
+          fi
+          
+          echo "changed_files=${CHANGED_FILES}" >> $GITHUB_OUTPUT
+      
+      - name: Notify structure changes
+        if: steps.check_structure.outputs.changed_files != ''
+        run: |
+          chmod +x ./scripts/notifyError.sh
+          ./scripts/notifyError.sh "${{ secrets.SLACK_SECRET }}" "${{ steps.check_structure.outputs.changed_files }}"
+        shell: bash
+      
+      - name: Check for content changes
+        id: check_changes
+        if: steps.check_structure.outputs.changed_files == ''
+        run: |
+          DIFF_OUTPUT=""
+          HAS_CHANGES=false
+          
+          # Check chain-ids.json
+          if [ -f "src/data/chain-ids.json" ]; then
+            if ! cmp -s "src/data/chain-ids.json" "temp/chain-ids.json"; then
+              echo "chain-ids.json has changes"
+              DIFF_OUTPUT="${DIFF_OUTPUT}chain-ids.json changes:\n$(diff -u src/data/chain-ids.json temp/chain-ids.json)\n\n"
+              HAS_CHANGES=true
+            fi
+          else
+            echo "src/data/chain-ids.json does not exist, will create it"
+            DIFF_OUTPUT="${DIFF_OUTPUT}chain-ids.json is new\n"
+            HAS_CHANGES=true
+          fi
+          
+          # Check chains.json
+          if [ -f "src/data/chains.json" ]; then
+            if ! cmp -s "src/data/chains.json" "temp/chains.json"; then
+              echo "chains.json has changes"
+              DIFF_OUTPUT="${DIFF_OUTPUT}chains.json changes:\n$(diff -u src/data/chains.json temp/chains.json)\n\n"
+              HAS_CHANGES=true
+            fi
+          else
+            echo "src/data/chains.json does not exist, will create it"
+            DIFF_OUTPUT="${DIFF_OUTPUT}chains.json is new\n"
+            HAS_CHANGES=true
+          fi
+          
+          # Check extraRpcs.js
+          if [ -f "src/data/extraRpcs.js" ]; then
+            # Create a temporary file with the same format as the original
+            echo "const extraRpcs = $(cat temp/extraRpcs.json);" > temp/extraRpcs.js
+            
+            if ! cmp -s "src/data/extraRpcs.js" "temp/extraRpcs.js"; then
+              echo "extraRpcs.js has changes"
+              DIFF_OUTPUT="${DIFF_OUTPUT}extraRpcs.js changes:\n$(diff -u src/data/extraRpcs.js temp/extraRpcs.js)\n\n"
+              HAS_CHANGES=true
+            fi
+          else
+            echo "src/data/extraRpcs.js does not exist, will create it"
+            DIFF_OUTPUT="${DIFF_OUTPUT}extraRpcs.js is new\n"
+            HAS_CHANGES=true
+          fi
+          
+          echo "has_changes=${HAS_CHANGES}" >> $GITHUB_OUTPUT
+          echo "diff_output<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF_OUTPUT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Create branch and update files
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Create a new branch
+          BRANCH_NAME="update-chain-data-$(date +%Y%m%d-%H%M%S)"
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git checkout -b $BRANCH_NAME
+          
+          # Ensure directory exists
+          mkdir -p src/data
+          
+          # Update files
+          cp temp/chain-ids.json src/data/chain-ids.json
+          cp temp/chains.json src/data/chains.json
+          
+          # For extraRpcs.js, we need to add the const declaration
+          echo "const extraRpcs = $(cat temp/extraRpcs.json);" > src/data/extraRpcs.js
+          
+          # Commit changes
+          git add src/data/chain-ids.json src/data/chains.json src/data/extraRpcs.js
+          git commit -m "Update chain data files $(date +%Y-%m-%d)"
+          
+          # Push branch
+          git push origin $BRANCH_NAME
+          
+          # Create PR
+          PR_URL=$(gh pr create --title "Update chain data files $(date +%Y-%m-%d)" \
+            --body "This PR updates the following files:
+            - chain-ids.json
+            - chains.json
+            - extraRpcs.js
+            
+            Changes:
+            \`\`\`diff
+            ${{ steps.check_changes.outputs.diff_output }}
+            \`\`\`" \
+            --base main \
+            --head $BRANCH_NAME)
+          
+          echo "PR created: $PR_URL"
+          echo "pr_url=${PR_URL}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: create_pr
+      
+      - name: Notify update
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          chmod +x ./scripts/notifyUpdate.sh
+          ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "${{ steps.check_changes.outputs.diff_output }}"
+        shell: bash 
