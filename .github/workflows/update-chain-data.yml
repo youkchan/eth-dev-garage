@@ -126,7 +126,8 @@ jobs:
           if [ -f "src/data/chain-ids.json" ]; then
             if ! cmp -s "src/data/chain-ids.json" "temp/chain-ids.json"; then
               echo "chain-ids.json has changes"
-              DIFF_OUTPUT="${DIFF_OUTPUT}chain-ids.json changes:\n$(diff -u src/data/chain-ids.json temp/chain-ids.json)\n\n"
+              # diffの出力を制限（最初の10行だけ）
+              DIFF_OUTPUT="${DIFF_OUTPUT}chain-ids.json changes:\n$(diff -u src/data/chain-ids.json temp/chain-ids.json | head -n 10)\n...(truncated)...\n\n"
               HAS_CHANGES=true
             fi
           else
@@ -139,7 +140,8 @@ jobs:
           if [ -f "src/data/chains.json" ]; then
             if ! cmp -s "src/data/chains.json" "temp/chains.json"; then
               echo "chains.json has changes"
-              DIFF_OUTPUT="${DIFF_OUTPUT}chains.json changes:\n$(diff -u src/data/chains.json temp/chains.json)\n\n"
+              # diffの出力を制限（最初の10行だけ）
+              DIFF_OUTPUT="${DIFF_OUTPUT}chains.json changes:\n$(diff -u src/data/chains.json temp/chains.json | head -n 10)\n...(truncated)...\n\n"
               HAS_CHANGES=true
             fi
           else
@@ -152,7 +154,8 @@ jobs:
           if [ -f "src/data/extraRpcs.js" ]; then
             if ! cmp -s "src/data/extraRpcs.js" "temp/extraRpcs.js"; then
               echo "extraRpcs.js has changes"
-              DIFF_OUTPUT="${DIFF_OUTPUT}extraRpcs.js changes:\n$(diff -u src/data/extraRpcs.js temp/extraRpcs.js)\n\n"
+              # diffの出力を制限（最初の10行だけ）
+              DIFF_OUTPUT="${DIFF_OUTPUT}extraRpcs.js changes:\n$(diff -u src/data/extraRpcs.js temp/extraRpcs.js | head -n 10)\n...(truncated)...\n\n"
               HAS_CHANGES=true
             fi
           else
@@ -198,8 +201,8 @@ jobs:
             - extraRpcs.js
             
             Changes:
-            \`\`\`diff
-            ${{ steps.check_changes.outputs.diff_output }}
+            \`\`\`
+            Files have been updated. Diff output is too large to display.
             \`\`\`" \
             --base main \
             --head $BRANCH_NAME)
@@ -214,5 +217,5 @@ jobs:
         if: steps.check_changes.outputs.has_changes == 'true'
         run: |
           chmod +x ./scripts/notifyUpdate.sh
-          ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "${{ steps.check_changes.outputs.diff_output }}"
+          ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "Files have been updated: chain-ids.json, chains.json, extraRpcs.js"
         shell: bash 
