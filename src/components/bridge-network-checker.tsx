@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Search, Settings, X, ExternalLink, Network, Info } from "lucide-react"
 import bridgeNetworkData from "../data/bridgeNetworkData.json"
 
-// ブリッジデータの型定義
+// Bridge data type definition
 interface BridgeNetwork {
   id: number
   displayName: string
@@ -17,13 +17,13 @@ interface BridgeNetwork {
   chainMapping?: Record<string, string | undefined>
 }
 
-// 優先ネットワークの設定
+// Priority networks configuration
 const PRIORITY_NETWORKS = ["Ethereum", "Arbitrum", "Optimism", "Polygon", "Base", "ZKsync Era", "Scroll", "Linea", "Blast", "Manta", "Bitcoin", "Solana"]
 
-// 除外するブリッジのリスト
+// List of bridges to exclude
 const EXCLUDED_BRIDGES = ["Avalanche Bridge", "Core Bitcoin Bridge", "IBC", "LayerZero"]
 
-// 手動で追加するブリッジ
+// Manually added bridges
 const ADDITIONAL_BRIDGES: BridgeNetwork[] = [
   {
     id: 0,
@@ -54,19 +54,19 @@ export default function BridgeNetworkChecker() {
   const [filteredBridges, setFilteredBridges] = useState<BridgeNetwork[]>([])
   const modalRef = useRef<HTMLDivElement>(null)
 
-  // すべてのネットワークを抽出
+  // Extract all networks
   useEffect(() => {
     const networks = new Set<string>()
     
-    // 型アサーションを使用して、bridgeNetworkDataをBridgeNetwork[]として扱う
+    // Use type assertion to treat bridgeNetworkData as BridgeNetwork[]
     const typedBridgeData = bridgeNetworkData as unknown as BridgeNetwork[]
     
-    // 除外ブリッジをフィルタリングしたデータ
+    // Filter out excluded bridges
     const filteredData = typedBridgeData.filter(bridge => 
       !EXCLUDED_BRIDGES.includes(bridge.displayName)
     )
     
-    // 手動で追加したブリッジを結合
+    // Combine with manually added bridges
     const combinedData = [...filteredData, ...ADDITIONAL_BRIDGES]
     
     combinedData.forEach((bridge) => {
@@ -75,7 +75,7 @@ export default function BridgeNetworkChecker() {
       })
     })
     
-    // 優先ネットワークを先頭に配置し、残りをアルファベット順に並べる
+    // Place priority networks at the beginning, sort the rest alphabetically
     const sortedNetworks = [
       ...PRIORITY_NETWORKS.filter(network => networks.has(network)),
       ...Array.from(networks)
@@ -87,22 +87,22 @@ export default function BridgeNetworkChecker() {
     setFilteredBridges(combinedData)
   }, [])
 
-  // ネットワークが選択された時にブリッジをフィルタリング
+  // Filter bridges when networks are selected
   useEffect(() => {
-    // 型アサーションを使用して、bridgeNetworkDataをBridgeNetwork[]として扱う
+    // Use type assertion to treat bridgeNetworkData as BridgeNetwork[]
     const typedBridgeData = bridgeNetworkData as unknown as BridgeNetwork[]
     
-    // 除外ブリッジをフィルタリングしたデータ
+    // Filter out excluded bridges
     const filteredData = typedBridgeData.filter(bridge => 
       !EXCLUDED_BRIDGES.includes(bridge.displayName)
     )
     
-    // 手動で追加したブリッジを結合
+    // Combine with manually added bridges
     const combinedData = [...filteredData, ...ADDITIONAL_BRIDGES]
     
     if (selectedNetworks.length > 0) {
       const bridges = combinedData.filter((bridge) => 
-        // 選択されたすべてのネットワークをサポートしているブリッジをフィルタリング
+        // Filter bridges that support all selected networks
         selectedNetworks.every(network => bridge.chains.includes(network))
       )
       setFilteredBridges(bridges)
@@ -111,7 +111,7 @@ export default function BridgeNetworkChecker() {
     }
   }, [selectedNetworks])
 
-  // モーダル外のクリックを検知
+  // Detect clicks outside the modal
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
@@ -138,7 +138,7 @@ export default function BridgeNetworkChecker() {
     }
   }, [isModalOpen])
 
-  // ネットワークフィルタリング関数
+  // Network filtering function for modal
   const getFilteredNetworksForModal = () => {
     if (!networkFilter) return allNetworks
     
@@ -148,30 +148,30 @@ export default function BridgeNetworkChecker() {
     )
   }
 
-  // ネットワーク選択の処理
+  // Handle network selection
   const handleNetworkSelection = (networkKey: string) => {
     setSelectedNetworks(prev => {
-      // すでに選択されている場合は削除
+      // If already selected, remove it
       if (prev.includes(networkKey)) {
         return prev.filter(n => n !== networkKey)
       }
       
-      // 選択されていない場合は追加（最大2つまで）
+      // If not selected, add it (up to 2 max)
       if (prev.length < 2) {
         return [...prev, networkKey]
       }
       
-      // すでに2つ選択されている場合は、最初の選択を削除して新しい選択を追加
+      // If already 2 selected, remove the first one and add the new selection
       return [prev[1], networkKey]
     })
   }
 
-  // 選択されたネットワークを削除
+  // Remove a selected network
   const removeNetwork = (networkToRemove: string) => {
     setSelectedNetworks(prev => prev.filter(network => network !== networkToRemove))
   }
 
-  // 選択されたネットワークをすべて削除
+  // Clear all selected networks
   const clearNetworks = () => {
     setSelectedNetworks([])
   }
