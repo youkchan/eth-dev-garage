@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { ethers } from "ethers"
-import { Loader2, Network, ChevronDown, Layers, FileSearch } from "lucide-react"
+import { Loader2, Network, ChevronDown, Layers, FileSearch, X, Settings, Plus, Search } from "lucide-react"
 import { useRpcData, findWorkingRpc } from "../lib/rpc-utils"
 
 // Search type options
@@ -21,8 +21,9 @@ export default function OnchainViewer() {
   const [error, setError] = useState<string | null>(null)
   const [excludedNetworks, setExcludedNetworks] = useState<Set<string>>(new Set())
   const [filteredNetworkList, setFilteredNetworkList] = useState<string[]>([])
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [networkFilter, setNetworkFilter] = useState("")
+  const modalRef = useRef<HTMLDivElement>(null)
   const { networksData, networkList, loading: networksLoading } = useRpcData()
 
   // Load excluded networks
@@ -76,19 +77,33 @@ export default function OnchainViewer() {
     }
   }, [networkList, excludedNetworks, network]);
 
-  // Handle clicks outside dropdown
+  // Handle clicks outside modal
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false)
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsModalOpen(false)
+        setNetworkFilter("")
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    // Handle escape key press
+    function handleEscKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsModalOpen(false)
+        setNetworkFilter("")
+      }
+    }
+
+    if (isModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscKey)
+    }
+    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscKey)
     }
-  }, [])
+  }, [isModalOpen])
 
   // Reset state when changing search type
   useEffect(() => {
@@ -161,6 +176,16 @@ export default function OnchainViewer() {
     }
   };
 
+  // Get filtered networks for modal display
+  const getFilteredNetworksForModal = () => {
+    if (!networkFilter) return filteredNetworkList;
+    
+    return filteredNetworkList.filter(networkKey => {
+      const networkName = networksData?.[networkKey]?.name || networkKey;
+      return networkName.toLowerCase().includes(networkFilter.toLowerCase());
+    });
+  };
+
   // Loading state
   if (networksLoading) {
     return (
@@ -182,77 +207,47 @@ export default function OnchainViewer() {
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="network" className="block text-sm font-medium text-gray-600 mb-1">
+          <label className="block text-sm font-medium text-gray-600 mb-1">
             Network
           </label>
-          <div className="relative" ref={dropdownRef}>
+          <div className="border border-blue-200 rounded-md p-2 bg-white flex items-center">
             <button
-              type="button"
-              className="w-full p-2 border border-blue-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black bg-white flex items-center justify-between"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              disabled={networksLoading}
-              aria-haspopup="listbox"
-              aria-expanded={isDropdownOpen}
+              onClick={() => {
+                setIsModalOpen(true);
+                setNetworkFilter("");
+              }}
+              className="flex items-center text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded mr-3"
             >
-              <span>{networksData?.[network]?.name || network}</span>
-              <ChevronDown className="h-4 w-4 text-gray-500" />
+              <Settings className="h-3 w-3 mr-1" />
+              Change Network
             </button>
-            
-            {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-blue-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                <ul className="py-1" role="listbox">
-                  {filteredNetworkList.map((networkKey) => (
-                    <li
-                      key={networkKey}
-                      className={`px-3 py-2 cursor-pointer hover:bg-blue-50 ${
-                        network === networkKey ? 'bg-blue-100 font-medium' : ''
-                      }`}
-                      onClick={() => {
-                        setNetwork(networkKey);
-                        setIsDropdownOpen(false);
-                      }}
-                      role="option"
-                      aria-selected={network === networkKey}
-                    >
-                      {networksData?.[networkKey]?.name || networkKey}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <span className="text-black">{networksData?.[network]?.name || network}</span>
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
-            Search Type
-          </label>
-          <div className="flex space-x-2">
-            <button
-              type="button"
-              className={`flex-1 p-2 rounded-md flex items-center justify-center ${
-                searchType === "transaction"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => setSearchType("transaction")}
-            >
-              <FileSearch className="w-4 h-4 mr-2" />
-              Transaction
-            </button>
-            <button
-              type="button"
-              className={`flex-1 p-2 rounded-md flex items-center justify-center ${
-                searchType === "block"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => setSearchType("block")}
-            >
-              <Layers className="w-4 h-4 mr-2" />
-              Block
-            </button>
-          </div>
+        <div className="flex space-x-2">
+          <button
+            className={`flex-1 p-2 rounded-md flex items-center justify-center ${
+              searchType === "transaction"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setSearchType("transaction")}
+          >
+            <FileSearch className="w-4 h-4 mr-2" />
+            Transaction
+          </button>
+          <button
+            className={`flex-1 p-2 rounded-md flex items-center justify-center ${
+              searchType === "block"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            onClick={() => setSearchType("block")}
+          >
+            <Layers className="w-4 h-4 mr-2" />
+            Block
+          </button>
         </div>
 
         <div>
@@ -343,6 +338,103 @@ export default function OnchainViewer() {
           </div>
         )}
       </div>
+
+      {/* Network selection modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            ref={modalRef}
+            className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] flex flex-col"
+          >
+            <div className="flex justify-between items-center border-b p-4">
+              <h3 className="text-lg font-medium text-gray-700 flex items-center">
+                <Settings className="h-5 w-5 mr-2 text-blue-500" />
+                Network Selection
+              </h3>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNetworkFilter("");
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto flex-grow">
+              {networksLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600 mr-2" />
+                  <span className="text-gray-600">Loading networks...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Filter networks..."
+                      value={networkFilter}
+                      onChange={(e) => setNetworkFilter(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-300 text-black"
+                    />
+                  </div>
+                  
+                  {getFilteredNetworksForModal().length === 0 ? (
+                    <div className="text-center py-4 text-gray-500">
+                      No networks match your filter
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-5 gap-2">
+                      {getFilteredNetworksForModal().map((networkKey) => (
+                        <div
+                          key={networkKey}
+                          className={`p-1 border rounded-md flex flex-col items-center text-center ${
+                            network === networkKey
+                              ? "border-blue-500 bg-blue-50 cursor-pointer"
+                              : "border-gray-200 hover:border-blue-300 cursor-pointer"
+                          }`}
+                          onClick={() => {
+                            setNetwork(networkKey);
+                            setIsModalOpen(false);
+                            setNetworkFilter("");
+                          }}
+                        >
+                          <div className="mb-1">
+                            {network === networkKey ? (
+                              <div className="h-3 w-3 rounded-full bg-blue-500 mx-auto"></div>
+                            ) : (
+                              <div className="h-3 w-3 rounded-full border border-gray-300 mx-auto"></div>
+                            )}
+                          </div>
+                          <span className="text-xs truncate w-full px-1">
+                            {networksData?.[networkKey]?.name || networkKey}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            
+            <div className="border-t p-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setNetworkFilter("");
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
