@@ -30,10 +30,16 @@ jobs:
       
       - name: Download chain-ids.json
         run: |
-          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js | \
-          sed -n '/const chainIds = {/,/};/p' | \
-          sed '1s/const chainIds = //' | \
-          sed '$s/;//' > temp/chain-ids.json
+          # ファイルをそのままダウンロード
+          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js > temp/chain-ids.json
+          
+          # ファイルサイズを確認
+          echo "File size: $(wc -c < temp/chain-ids.json) bytes"
+          
+          # ファイルの内容を確認（デバッグ用）
+          echo "===== chain-ids.json content ====="
+          head -n 10 temp/chain-ids.json
+          echo "===== end of preview ====="
       
       - name: Download chains.json
         run: curl -s https://chainid.network/chains.json > temp/chains.json
@@ -69,19 +75,13 @@ jobs:
         run: |
           CHANGED_FILES=""
           
-          # Check chain-ids.json structure
-          if ! jq empty temp/chain-ids.json 2>/dev/null; then
-            echo "chain-ids.json structure has changed"
-            CHANGED_FILES="chain-ids.json $CHANGED_FILES"
-          fi
+          # extraRpcs.jsとchain-ids.jsonはJavaScriptファイルなのでJSONチェックはスキップ
           
           # Check chains.json structure
           if ! jq empty temp/chains.json 2>/dev/null; then
             echo "chains.json structure has changed"
             CHANGED_FILES="chains.json $CHANGED_FILES"
           fi
-          
-          # extraRpcs.jsはJavaScriptファイルなのでJSONチェックはスキップ
           
           echo "changed_files=${CHANGED_FILES}" >> $GITHUB_OUTPUT
       
