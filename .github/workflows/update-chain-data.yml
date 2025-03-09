@@ -197,5 +197,6 @@ jobs:
       
       - name: Notify update
         if: steps.check_changes.outputs.has_changes == 'true'
-        run: ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "Files have been updated: chain-ids.json, chains.json, extraRpcs.js, bridgeNetworkData.json"
+        run: |
+          ./scripts/notifyUpdate.sh "${{ secrets.SLACK_SECRET }}" "Files have been updated: chain-ids.json, chains.json, extraRpcs.js, bridgeNetworkData.json"
         shell: bash 
