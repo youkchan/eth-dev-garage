@@ -98,8 +98,9 @@ jobs:
           # ファイルの末尾から「const allExtraRpcs」を含む行以降を削除
           sed -i '/const allExtraRpcs/,$d' temp/extraRpcs.js
           # 最後の行が「};」で終わるようにする
-          echo "};$(cat temp/extraRpcs.js | grep -q '};$' || echo '')" >> temp/extraRpcs.js.tmp
-          mv temp/extraRpcs.js.tmp temp/extraRpcs.js
+          if ! grep -q '};$' temp/extraRpcs.js; then
+            echo "};" >> temp/extraRpcs.js
+          fi
           
           # 削除後のファイルの内容を確認（デバッグ用）
           echo "===== extraRpcs.js after removing trackingDetails and allExtraRpcs ====="
