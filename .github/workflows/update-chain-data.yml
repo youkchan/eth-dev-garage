@@ -30,8 +30,11 @@ jobs:
       
       - name: Download chain-ids.json
         run: |
-          # ファイルをそのままダウンロード
-          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js > temp/chain-ids.json
+          # 一時ファイルにダウンロード
+          curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/chainIds.js > temp/full_chainIds.js
+          
+          # export default を削除してJSONとして保存
+          cat temp/full_chainIds.js | sed 's/export default //' > temp/chain-ids.json
           
           # ファイルサイズを確認
           echo "File size: $(wc -c < temp/chain-ids.json) bytes"
@@ -42,7 +45,21 @@ jobs:
           echo "===== end of preview ====="
       
       - name: Download chains.json
-        run: curl -s https://chainid.network/chains.json > temp/chains.json
+        run: |
+          # 一時ファイルにダウンロード
+          curl -s https://chainid.network/chains.json > temp/full_chains.json
+          
+          # 必要なパラメータだけを抽出（chainId、nativeCurrency、rpc）
+          jq '[.[] | {chainId: .chainId, nativeCurrency: .nativeCurrency, rpc: .rpc}]' temp/full_chains.json > temp/chains.json
+          
+          # ファイルサイズを確認
+          echo "Original file size: $(wc -c < temp/full_chains.json) bytes"
+          echo "Reduced file size: $(wc -c < temp/chains.json) bytes"
+          
+          # ファイルの内容を確認（デバッグ用）
+          echo "===== chains.json content ====="
+          head -n 20 temp/chains.json
+          echo "===== end of preview ====="
       
       - name: Download extraRpcs.js
         run: |
@@ -75,7 +92,13 @@ jobs:
         run: |
           CHANGED_FILES=""
           
-          # extraRpcs.jsとchain-ids.jsonはJavaScriptファイルなのでJSONチェックはスキップ
+          # extraRpcs.jsはJavaScriptファイルなのでJSONチェックはスキップ
+          
+          # Check chain-ids.json structure
+          if ! jq empty temp/chain-ids.json 2>/dev/null; then
+            echo "chain-ids.json structure has changed"
+            CHANGED_FILES="chain-ids.json $CHANGED_FILES"
+          fi
           
           # Check chains.json structure
           if ! jq empty temp/chains.json 2>/dev/null; then
