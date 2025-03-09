@@ -4,9 +4,10 @@ import { useState, useEffect } from "react"
 import UnitConverter from "@/components/unit-converter"
 import OnchainViewer from "@/components/onchain-viewer"
 import BalanceChecker from "@/components/balance-checker"
-import { Calculator, Search, Wallet, Heart } from "lucide-react"
+import BridgeNetworkChecker from "@/components/bridge-network-checker"
+import { Calculator, Search, Wallet, Heart, GitMerge } from "lucide-react"
 
-type Tool = "converter" | "transaction" | "balance"
+type Tool = "converter" | "transaction" | "balance" | "bridge"
 
 export default function Home() {
   const [activeTool, setActiveTool] = useState<Tool>("converter")
@@ -31,7 +32,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold mb-8 text-center text-black-600 pt-8">Ethereum Dev Garage</h1>
 
         <div className="mb-8">
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b border-gray-200 flex-wrap">
             <button
               className={`py-2 px-4 ${
                 activeTool === "converter"
@@ -65,12 +66,24 @@ export default function Home() {
               <Wallet className="w-5 h-5 mr-2 inline-block" />
               Balance Checker
             </button>
+            <button
+              className={`py-2 px-4 ${
+                activeTool === "bridge"
+                  ? "border-b-2 border-blue-500 text-black-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+              onClick={() => handleToolChange("bridge")}
+            >
+              <GitMerge className="w-5 h-5 mr-2 inline-block" />
+              Bridge Checker
+            </button>
           </div>
         </div>
 
         {activeTool === "converter" && <UnitConverter />}
         {activeTool === "transaction" && <OnchainViewer />}
         {activeTool === "balance" && <BalanceChecker />}
+        {activeTool === "bridge" && <BridgeNetworkChecker />}
       </div>
       
       <footer className="mt-12 py-6 bg-gray-100 border-t border-gray-200">
