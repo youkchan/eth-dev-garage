@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import UnitConverter from "@/components/unit-converter"
-import TransactionViewer from "@/components/transaction-viewer"
+import OnchainViewer from "@/components/onchain-viewer"
 import BalanceChecker from "@/components/balance-checker"
 import { Calculator, Search, Wallet, Heart } from "lucide-react"
 
@@ -52,7 +52,7 @@ export default function Home() {
               onClick={() => handleToolChange("transaction")}
             >
               <Search className="w-5 h-5 mr-2 inline-block" />
-              Transaction Viewer
+              Onchain Viewer
             </button>
             <button
               className={`py-2 px-4 ${
@@ -69,7 +69,7 @@ export default function Home() {
         </div>
 
         {activeTool === "converter" && <UnitConverter />}
-        {activeTool === "transaction" && <TransactionViewer />}
+        {activeTool === "transaction" && <OnchainViewer />}
         {activeTool === "balance" && <BalanceChecker />}
       </div>
       
@@ -77,7 +77,7 @@ export default function Home() {
         <div className="container mx-auto px-4 max-w-4xl">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="text-gray-600 text-sm mb-4 md:mb-0">
-              © {new Date().getFullYear()} Ethereum Dev Garage. All rights reserved.
+              © {new Date().getFullYear()} Ethereum Dev Garage.
             </div>
             <div className="flex items-center">
               <Heart className="w-4 h-4 text-red-500 mr-2" />

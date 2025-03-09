@@ -19,7 +19,7 @@ async function loadPriorityNetworks() {
   } catch (error) {
     console.error('Error loading priority networks:', error);
     // デフォルト値を返す
-    return ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base'];
+    return ['ethereum', 'sepolia', 'holesky', 'arbitrum', 'optimism', 'polygon', 'base'];
   }
 }
 
@@ -88,11 +88,9 @@ export async function fetchChainData(): Promise<{
     Object.entries(chainIds).forEach(([chainId, networkKey]) => {
       const network = networkKey as string;
       
-      // 一般的なエクスプローラーのパターンに基づいてURLを生成
+      // 主要なネットワークのエクスプローラーURLを設定
       if (network === 'ethereum') {
         explorers[network] = 'https://etherscan.io/tx/';
-      } else if (network === 'binance') {
-        explorers[network] = 'https://bscscan.com/tx/';
       } else if (network === 'polygon') {
         explorers[network] = 'https://polygonscan.com/tx/';
       } else if (network === 'arbitrum') {
@@ -126,16 +124,20 @@ export async function fetchChainData(): Promise<{
         '10': 'optimism',
         '137': 'polygon',
         '42161': 'arbitrum',
-        '8453': 'base'
+        '8453': 'base',
+        '11155111': 'sepolia',
+        '17000': 'holesky'
       },
       explorers: {
         'ethereum': 'https://etherscan.io/tx/',
         'optimism': 'https://optimistic.etherscan.io/tx/',
         'polygon': 'https://polygonscan.com/tx/',
         'arbitrum': 'https://arbiscan.io/tx/',
-        'base': 'https://basescan.org/tx/'
+        'base': 'https://basescan.org/tx/',
+        'sepolia': 'https://sepolia.etherscan.io/tx/',
+        'holesky': 'https://holesky.etherscan.io/tx/'
       },
-      networkList: ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+      networkList: ['ethereum', 'sepolia', 'holesky', 'arbitrum', 'optimism', 'polygon', 'base']
     };
   }
 }
@@ -171,13 +173,46 @@ export async function fetchRpcData(): Promise<{
     Object.entries(chainIds).forEach(([chainId, networkKey]) => {
       networkKeyToChainId[networkKey as string] = parseInt(chainId, 10);
     });
-    
-    // 各ネットワークのRPCを正規表現で抽出
-    Object.entries(networkKeyToChainId).forEach(([networkKey, chainId]) => {
-      const chainIdStr = chainId.toString();
-      
+
+    // Sepolia と Holesky を手動で追加
+    networksMap['sepolia'] = {
+      name: 'Sepolia',
+      chainId: 11155111,
+      rpcs: [
+        'https://rpc.sepolia.org',
+        'https://ethereum-sepolia.blockpi.network/v1/rpc/public',
+        'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161', // Public Infura key
+        'https://rpc2.sepolia.org',
+        'https://eth-sepolia.public.blastapi.io'
+      ],
+      blockExplorer: 'https://sepolia.etherscan.io/tx/'
+    };
+
+    networksMap['holesky'] = {
+      name: 'Holesky',
+      chainId: 17000,
+      rpcs: [
+        'https://ethereum-holesky.publicnode.com',
+        'https://holesky.blockpi.network/v1/rpc/public',
+        'https://holesky.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161', // Public Infura key
+        'https://ethereum-holesky.blockpi.network/v1/rpc/public',
+        'https://1rpc.io/holesky'
+      ],
+      blockExplorer: 'https://holesky.etherscan.io/tx/'
+    };
+
+    // 残りのネットワークを処理
+    networkList.forEach(networkKey => {
+      // Sepolia と Holesky は既に追加済みなのでスキップ
+      if (networkKey === 'sepolia' || networkKey === 'holesky') {
+        return;
+      }
+
       // チェーンIDに対応するRPCを正規表現で検索
-      const regex = new RegExp(`${chainIdStr}:\\s*{[^}]*rpcs:\\s*\\[([^\\]]+)\\]`, 's');
+      const chainId = networkKeyToChainId[networkKey];
+      if (!chainId) return; // チェーンIDが見つからない場合はスキップ
+
+      const regex = new RegExp(`${chainId}:\\s*{[^}]*rpcs:\\s*\\[([^\\]]+)\\]`, 's');
       const match = text.match(regex);
       
       if (match && match[1]) {
@@ -211,14 +246,14 @@ export async function fetchRpcData(): Promise<{
         }
         
         // ネットワーク名を抽出（オプション）
-        const nameRegex = new RegExp(`${chainIdStr}:\\s*{[^}]*name:\\s*["']([^"']+)["']`, 's');
+        const nameRegex = new RegExp(`${chainId}:\\s*{[^}]*name:\\s*["']([^"']+)["']`, 's');
         const nameMatch = text.match(nameRegex);
         const name = nameMatch ? nameMatch[1] : networkKey.charAt(0).toUpperCase() + networkKey.slice(1);
         
         if (rpcUrls.length > 0) {
           networksMap[networkKey] = {
             name,
-            chainId,
+            chainId: chainId,
             rpcs: rpcUrls,
             blockExplorer: explorers[networkKey] || ""
           };
@@ -226,9 +261,17 @@ export async function fetchRpcData(): Promise<{
       }
     });
     
+    // 最終的なネットワークリストを作成
+    // Sepolia と Holesky が確実に含まれるようにする
+    const finalNetworkList = Array.from(new Set([
+      ...networkList,
+      'sepolia',
+      'holesky'
+    ]));
+
     return {
       networks: networksMap,
-      networkList
+      networkList: finalNetworkList
     };
   } catch (error) {
     console.error('Error fetching RPC data:', error);
@@ -241,6 +284,18 @@ export async function fetchRpcData(): Promise<{
         rpcs: ['https://eth.llamarpc.com'],
         blockExplorer: 'https://etherscan.io/tx/'
       },
+      'sepolia': {
+        name: 'Sepolia',
+        chainId: 11155111,
+        rpcs: ['https://rpc.sepolia.org', 'https://ethereum-sepolia.blockpi.network/v1/rpc/public'],
+        blockExplorer: 'https://sepolia.etherscan.io/tx/'
+      },
+      'holesky': {
+        name: 'Holesky',
+        chainId: 17000,
+        rpcs: ['https://ethereum-holesky.publicnode.com', 'https://holesky.blockpi.network/v1/rpc/public'],
+        blockExplorer: 'https://holesky.etherscan.io/tx/'
+      },
       'arbitrum': {
         name: 'Arbitrum',
         chainId: 42161,
@@ -250,26 +305,29 @@ export async function fetchRpcData(): Promise<{
       'optimism': {
         name: 'Optimism',
         chainId: 10,
-        rpcs: ['https://optimism.llamarpc.com'],
+        rpcs: ['https://mainnet.optimism.io'],
         blockExplorer: 'https://optimistic.etherscan.io/tx/'
       },
       'polygon': {
         name: 'Polygon',
         chainId: 137,
-        rpcs: ['https://polygon.llamarpc.com'],
+        rpcs: ['https://polygon-rpc.com'],
         blockExplorer: 'https://polygonscan.com/tx/'
       },
       'base': {
         name: 'Base',
         chainId: 8453,
-        rpcs: ['https://base.llamarpc.com'],
+        rpcs: ['https://mainnet.base.org'],
         blockExplorer: 'https://basescan.org/tx/'
       }
     };
     
+    // 必ずSepoliaとHoleskyを含むネットワークリストを返す
+    const fallbackNetworkList = ['ethereum', 'sepolia', 'holesky', 'arbitrum', 'optimism', 'polygon', 'base'];
+    
     return {
       networks: fallbackNetworks,
-      networkList: ['ethereum', 'arbitrum', 'optimism', 'polygon', 'base']
+      networkList: fallbackNetworkList
     };
   }
 }

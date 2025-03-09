@@ -11,6 +11,8 @@
     "taiko",
     "linea",
     "morph",
-    "zksync era"
+    "zksync era",
+    "sepolia",
+    "holesky"
   ]
 } 

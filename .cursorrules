@@ -1,5 +1,5 @@
 response:
-  language: "en"
+  language: "ja"
 
 modifications:
   restricted_files: "Do not modify files unless explicitly instructed."

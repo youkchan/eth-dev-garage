@@ -1,7 +1,6 @@
 {
   "excludedNetworks": [
     "aurora",
-    "celo",
     "harmony",
     "klaytn",
     "metis",
