@@ -43,11 +43,26 @@ jobs:
           # 一時ファイルにダウンロード
           curl -s https://raw.githubusercontent.com/DefiLlama/chainlist/main/constants/extraRpcs.js > temp/full_extraRpcs.js
           
-          # const extraRpcs = { ... }; の部分だけを抽出
-          grep -A 100000 "const extraRpcs = {" temp/full_extraRpcs.js | grep -B 100000 -m 1 "export default extraRpcs" | grep -v "export default extraRpcs" > temp/extracted_extraRpcs.js
+          # ファイルの内容を確認（デバッグ用）
+          echo "===== extraRpcs.js content ====="
+          head -n 20 temp/full_extraRpcs.js
+          echo "===== end of preview ====="
           
-          # const extraRpcs = の部分を削除して純粋なJSONにする
-          sed '1s/const extraRpcs = //' temp/extracted_extraRpcs.js | sed '$s/;//' > temp/extraRpcs.json
+          # 必要な部分だけを抽出（export const extraRpcs = { ... }）
+          grep -n "export const extraRpcs = {" temp/full_extraRpcs.js || echo "Pattern not found"
+          
+          # 行番号を取得して抽出
+          START_LINE=$(grep -n "export const extraRpcs = {" temp/full_extraRpcs.js | cut -d: -f1)
+          
+          if [ -n "$START_LINE" ]; then
+            echo "Found 'export const extraRpcs = {' at line $START_LINE"
+            # 抽出して新しいファイルに保存
+            tail -n +$START_LINE temp/full_extraRpcs.js > temp/extraRpcs.js
+          else
+            echo "WARNING: Could not find 'export const extraRpcs = {' pattern"
+            # パターンが見つからない場合はファイル全体をコピー
+            cp temp/full_extraRpcs.js temp/extraRpcs.js
+          fi
       
       - name: Check for structural changes
         id: check_structure
@@ -66,11 +81,7 @@ jobs:
             CHANGED_FILES="chains.json $CHANGED_FILES"
           fi
           
-          # Check extraRpcs.json structure
-          if ! jq empty temp/extraRpcs.json 2>/dev/null; then
-            echo "extraRpcs.js structure has changed"
-            CHANGED_FILES="extraRpcs.js $CHANGED_FILES"
-          fi
+          # extraRpcs.jsはJavaScriptファイルなのでJSONチェックはスキップ
           
           echo "changed_files=${CHANGED_FILES}" >> $GITHUB_OUTPUT
       
@@ -116,9 +127,6 @@ jobs:
           
           # Check extraRpcs.js
           if [ -f "src/data/extraRpcs.js" ]; then
-            # Create a temporary file with the same format as the original
-            echo "const extraRpcs = $(cat temp/extraRpcs.json);" > temp/extraRpcs.js
-            
             if ! cmp -s "src/data/extraRpcs.js" "temp/extraRpcs.js"; then
               echo "extraRpcs.js has changes"
               DIFF_OUTPUT="${DIFF_OUTPUT}extraRpcs.js changes:\n$(diff -u src/data/extraRpcs.js temp/extraRpcs.js)\n\n"
@@ -150,9 +158,7 @@ jobs:
           # Update files
           cp temp/chain-ids.json src/data/chain-ids.json
           cp temp/chains.json src/data/chains.json
-          
-          # For extraRpcs.js, we need to add the const declaration
-          echo "const extraRpcs = $(cat temp/extraRpcs.json);" > src/data/extraRpcs.js
+          cp temp/extraRpcs.js src/data/extraRpcs.js
           
           # Commit changes
           git add src/data/chain-ids.json src/data/chains.json src/data/extraRpcs.js
