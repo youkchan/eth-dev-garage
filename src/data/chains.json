@@ -11254,6 +11254,17 @@
     ]
   },
   {
+    "chainId": 5124,
+    "nativeCurrency": {
+      "name": "Seismic Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://node-2.seismicdev.net/rpc"
+    ]
+  },
+  {
     "chainId": 5151,
     "nativeCurrency": {
       "name": "MOCA",
@@ -11442,10 +11453,8 @@
       "decimals": 18
     },
     "rpc": [
-      "https://mainnet.edexa.network/rpc",
-      "wss://mainnet.edexa.network/wss",
-      "https://mainnet.edexa.com/rpc",
-      "wss://mainnet.edexa.com/wss"
+      "https://rpc.edexa.network",
+      "https://rpc.edexa.com"
     ]
   },
   {
@@ -22272,6 +22281,17 @@
     ]
   },
   {
+    "chainId": 555777,
+    "nativeCurrency": {
+      "name": "Sepolia Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://zkrpc-sepolia.xsollazk.com"
+    ]
+  },
+  {
     "chainId": 555888,
     "nativeCurrency": {
       "name": "Ether",
@@ -25959,6 +25979,17 @@
     },
     "rpc": [
       "https://dchaintestnet-2713017997578000-1.jsonrpc.testnet.sagarpc.io"
+    ]
+  },
+  {
+    "chainId": 2716446429837000,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://dchain-2716446429837000-1.jsonrpc.sagarpc.io"
     ]
   }
 ]
