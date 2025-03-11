@@ -1173,7 +1173,7 @@
   {
     "chainId": 96,
     "nativeCurrency": {
-      "name": "Bitkub Coin",
+      "name": "KUB Coin",
       "symbol": "KUB",
       "decimals": 18
     },
@@ -8077,10 +8077,8 @@
       "decimals": 18
     },
     "rpc": [
-      "https://testnet.edexa.network/rpc",
-      "wss://testnet.edexa.network/wss",
-      "https://testnet.edexa.com/rpc",
-      "wss://testnet.edexa.com/wss"
+      "https://rpc.testnet.edexa.network",
+      "https://rpc.testnet.edexa.com"
     ]
   },
   {
@@ -13652,8 +13650,7 @@
       "decimals": 18
     },
     "rpc": [
-      "https://alphatestnet-evm-rpc.qubetics.work/",
-      "wss://wss-testnet-nodes.shidoscan.com"
+      "https://alphatestnet-evm-rpc.qubetics.work/"
     ]
   },
   {
@@ -16417,7 +16414,7 @@
   {
     "chainId": 25925,
     "nativeCurrency": {
-      "name": "Bitkub Coin",
+      "name": "KUB Coin",
       "symbol": "tKUB",
       "decimals": 18
     },
@@ -25858,6 +25855,17 @@
     "rpc": [
       "https://rpc.volmex.t.raas.gelato.cloud",
       "wss://ws.volmex.t.raas.gelato.cloud"
+    ]
+  },
+  {
+    "chainId": 123420001114,
+    "nativeCurrency": {
+      "name": "Camp",
+      "symbol": "CAMP",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.basecamp.t.raas.gelato.cloud"
     ]
   },
   {

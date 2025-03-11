@@ -7466,5 +7466,8 @@ export const extraRpcs = {
         
       }
     ],
-  }
+  },
+  3073: {
+    rpcs: ["https://mainnet.movementnetwork.xyz"],
+  },
 };
