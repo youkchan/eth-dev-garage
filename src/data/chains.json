@@ -16495,6 +16495,17 @@
     ]
   },
   {
+    "chainId": 26888,
+    "nativeCurrency": {
+      "name": "AB",
+      "symbol": "AB",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.core.testnet.ab.org"
+    ]
+  },
+  {
     "chainId": 26988,
     "nativeCurrency": {
       "name": "Newton",
@@ -17993,8 +18004,7 @@
       "decimals": 18
     },
     "rpc": [
-      "https://rpc.overprotocol.com",
-      "https://rpc2.overprotocol.com"
+      "https://rpc.overprotocol.com"
     ]
   },
   {
