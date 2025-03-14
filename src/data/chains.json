@@ -3065,7 +3065,8 @@
       "decimals": 18
     },
     "rpc": [
-      "https://mainnet.hashio.io/api"
+      "https://mainnet.hashio.io/api",
+      "https://hedera.linkpool.pro"
     ]
   },
   {
@@ -8972,7 +8973,8 @@
       "https://rpc.ankr.com/atleta_olympia",
       "wss://testnet-rpc.atleta.network",
       "https://atleta-testnet.htw.tech/",
-      "https://public-atleta.nownodes.io"
+      "https://public-atleta.nownodes.io",
+      "https://public-atla-testnet.fastnode.io"
     ]
   },
   {
@@ -9207,7 +9209,9 @@
       "decimals": 18
     },
     "rpc": [
-      "https://rpc.6do.world"
+      "https://rpc.6dochain.com",
+      "https://rpc2.6dochain.com",
+      "https://rpc3.6dochain.com"
     ]
   },
   {
@@ -12113,7 +12117,7 @@
   {
     "chainId": 6880,
     "nativeCurrency": {
-      "name": "Mtt mainnet native coin",
+      "name": "MTT Network native coin",
       "symbol": "MTT",
       "decimals": 18
     },
@@ -12458,7 +12462,10 @@
       "symbol": "ETH",
       "decimals": 18
     },
-    "rpc": []
+    "rpc": [
+      "https://l2.rarimo.com",
+      "wss://wss.l2.rarimo.com"
+    ]
   },
   {
     "chainId": 7484,
@@ -12720,6 +12727,17 @@
     },
     "rpc": [
       "https://rpc.powerloom.network"
+    ]
+  },
+  {
+    "chainId": 7869,
+    "nativeCurrency": {
+      "name": "Powerloom Token",
+      "symbol": "POWER",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc-v2.powerloom.network"
     ]
   },
   {
@@ -12985,8 +13003,8 @@
   {
     "chainId": 8108,
     "nativeCurrency": {
-      "name": "ZCX",
-      "symbol": "ZCX",
+      "name": "ZTC",
+      "symbol": "ZTC",
       "decimals": 18
     },
     "rpc": []
@@ -13171,8 +13189,8 @@
   {
     "chainId": 8408,
     "nativeCurrency": {
-      "name": "ZCX",
-      "symbol": "ZCX",
+      "name": "ZTC",
+      "symbol": "ZTC",
       "decimals": 18
     },
     "rpc": [
@@ -13712,6 +13730,17 @@
       "https://rpc-nodes.nexablockscan.io",
       "wss://wss-nodes.nexablockscan.io",
       "https://rpc-nodes-delta.nexablockscan.io"
+    ]
+  },
+  {
+    "chainId": 9029,
+    "nativeCurrency": {
+      "name": "Qubetics Testnet Token",
+      "symbol": "TICS",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc-testnet.qubetics.work/"
     ]
   },
   {
@@ -14593,6 +14622,15 @@
     ]
   },
   {
+    "chainId": 10920,
+    "nativeCurrency": {
+      "name": "Fuse",
+      "symbol": "FUSE",
+      "decimals": 18
+    },
+    "rpc": []
+  },
+  {
     "chainId": 10946,
     "nativeCurrency": {
       "name": "Quadrans Coin",
@@ -14784,8 +14822,8 @@
       "decimals": 18
     },
     "rpc": [
-      "https://rpc-mainnet-1.bevm.io/",
-      "https://rpc-mainnet-2.bevm.io/"
+      "https://rpc-mainnet-1.geb.network/",
+      "https://rpc-mainnet-2.geb.network/"
     ]
   },
   {
@@ -14807,7 +14845,7 @@
       "decimals": 18
     },
     "rpc": [
-      "https://signet.bevm.io/"
+      "https://signet.geb.network/"
     ]
   },
   {
@@ -16328,12 +16366,12 @@
   {
     "chainId": 24125,
     "nativeCurrency": {
-      "name": "MGIX",
-      "symbol": "MGIX",
+      "name": "XURA",
+      "symbol": "XURA",
       "decimals": 18
     },
     "rpc": [
-      "https://rpc.magichain.io"
+      "https://rpc.nexurachain.io"
     ]
   },
   {
@@ -16836,9 +16874,7 @@
       "symbol": "INTD",
       "decimals": 18
     },
-    "rpc": [
-      "https://rpc.xchainscan.com"
-    ]
+    "rpc": []
   },
   {
     "chainId": 31754,
@@ -16847,9 +16883,7 @@
       "symbol": "INTD",
       "decimals": 18
     },
-    "rpc": [
-      "https://rpc.xchaintest.net"
-    ]
+    "rpc": []
   },
   {
     "chainId": 32001,
@@ -18577,6 +18611,17 @@
     ]
   },
   {
+    "chainId": 64002,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://xchain-testnet-rpc.kuma.bid"
+    ]
+  },
+  {
     "chainId": 65349,
     "nativeCurrency": {
       "name": "CRATD2C",
@@ -19746,6 +19791,17 @@
     },
     "rpc": [
       "https://rpc.stratovm.io"
+    ]
+  },
+  {
+    "chainId": 94524,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://xchain-rpc.kuma.bid"
     ]
   },
   {
@@ -22467,6 +22523,18 @@
     ]
   },
   {
+    "chainId": 695569,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.pyropechain.com",
+      "wss://rpc.pyropechain.com"
+    ]
+  },
+  {
     "chainId": 696969,
     "nativeCurrency": {
       "name": "Galadriel Devnet token",
@@ -24283,6 +24351,17 @@
     ]
   },
   {
+    "chainId": 20250217,
+    "nativeCurrency": {
+      "name": "Xphere",
+      "symbol": "XP",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://en-bkk.x-phere.com"
+    ]
+  },
+  {
     "chainId": 20256789,
     "nativeCurrency": {
       "name": "ETP Chain Native Token",
@@ -24358,7 +24437,7 @@
       "decimals": 18
     },
     "rpc": [
-      "https://rpc-testnet.6do.world"
+      "https://rpc-testnet.6dochain.com"
     ]
   },
   {
