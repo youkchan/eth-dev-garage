@@ -3767,6 +3767,11 @@ export const extraRpcs = {
         tracking: "none",
         
       },
+      {
+        url: "https://zksync.api.onfinality.io/public",
+        tracking: "limited",
+        
+      },
     ],
   },
   196: {
@@ -4001,6 +4006,11 @@ export const extraRpcs = {
         tracking: "none",
         
       },
+      {
+        url: "https://zetachain-testnet-evm.reliableninjas.com",
+        tracking: "none",
+        
+      },
     ],
   },
   7000: {
@@ -4037,6 +4047,11 @@ export const extraRpcs = {
       },
       {
         url: "https://node.histori.xyz/zetachain-mainnet/8ry9f6t9dct1se2hlagxnd9n2a",
+        tracking: "none",
+        
+      },
+      {
+        url: "https://zetachain-mainnet-evm.reliableninjas.com",
         tracking: "none",
         
       },
@@ -6219,6 +6234,16 @@ export const extraRpcs = {
       },
     ],
   },
+  7869: {
+    rpcs: [
+      "https://rpc-v2.powerloom.network",
+      {
+        url: "https://rpc-v2.powerloom.network",
+        tracking: "yes",
+        
+      },
+    ],
+  },
   17071: {
     rpcs: [
       {
@@ -7190,7 +7215,7 @@ export const extraRpcs = {
       "https://evmrpc.story.nodestake.org",
       "https://story-mainnet.zenithnode.xyz",
       "https://evm-rpc.story.silentvalidator.com",
-      "https://story-evm-rpc.mandragora.io",
+      "https://story-mainnet-evmrpc.mandragora.io",
       "https://rpc-storyevm.aldebaranode.xyz",
     ],
   },
@@ -7465,6 +7490,16 @@ export const extraRpcs = {
         tracking: "yes",
         
       }
+    ],
+  },
+  108160679: {
+    rpcs: [
+      "https://evm.orai.io",
+      {
+        url: "https://oraichain-mainnet-evm.itrocket.net",
+        tracking: "none",
+        
+      },
     ],
   },
   3073: {

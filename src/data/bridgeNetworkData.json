@@ -223,10 +223,18 @@
       "Linea",
       "Mode",
       "Blast",
-      "Scroll"
+      "Scroll",
+      "Lisk",
+      "Unichain",
+      "Soneium",
+      "Ink",
+      "Zora",
+      "World Chain",
+      "Redstone"
     ],
     "chainMapping": {
-      "zksync era": "era"
+      "zksync era": "era",
+      "world chain": "wc"
     }
   },
   {
