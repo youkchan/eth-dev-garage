@@ -15692,6 +15692,17 @@
     ]
   },
   {
+    "chainId": 17735,
+    "nativeCurrency": {
+      "name": "Esport Token",
+      "symbol": "ESPT",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://esportsblock.org/rpc/"
+    ]
+  },
+  {
     "chainId": 17777,
     "nativeCurrency": {
       "name": "EOS",
@@ -22951,8 +22962,8 @@
       "decimals": 18
     },
     "rpc": [
-      "https://fraa-dancebox-3041-rpc.a.dancebox.tanssi.network",
-      "wss://fraa-dancebox-3041-rpc.a.dancebox.tanssi.network"
+      "https://fraa-flashbox-4643-rpc.a.stagenet.tanssi.network",
+      "wss://fraa-flashbox-4643-rpc.a.stagenet.tanssi.network"
     ]
   },
   {
