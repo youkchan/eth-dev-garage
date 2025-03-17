@@ -2494,6 +2494,19 @@
     ]
   },
   {
+    "chainId": 215,
+    "nativeCurrency": {
+      "name": "IDN",
+      "symbol": "IDN",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://dataseed1.idn-rpc.com",
+      "https://dataseed2.idn-rpc.com",
+      "https://dataseed3.idn-rpc.com"
+    ]
+  },
+  {
     "chainId": 216,
     "nativeCurrency": {
       "name": "Happy",
@@ -12671,6 +12684,17 @@
     ]
   },
   {
+    "chainId": 7788,
+    "nativeCurrency": {
+      "name": "DRW",
+      "symbol": "DRW",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.drawchain.org"
+    ]
+  },
+  {
     "chainId": 7798,
     "nativeCurrency": {
       "name": "USDT Testnet",
@@ -22385,6 +22409,17 @@
     },
     "rpc": [
       "https://rpc.testchainv1.hetuscan.com"
+    ]
+  },
+  {
+    "chainId": 560048,
+    "nativeCurrency": {
+      "name": "Hoodi Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.hoodi.ethpandaops.io"
     ]
   },
   {
