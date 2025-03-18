@@ -6993,6 +6993,17 @@
     "rpc": []
   },
   {
+    "chainId": 1424,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.perennial.foundation"
+    ]
+  },
+  {
     "chainId": 1433,
     "nativeCurrency": {
       "name": "Rikeza",
@@ -16932,6 +16943,17 @@
     ]
   },
   {
+    "chainId": 32323,
+    "nativeCurrency": {
+      "name": "BasedAI",
+      "symbol": "BASED",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://mainnet.basedaibridge.com/rpc/"
+    ]
+  },
+  {
     "chainId": 32382,
     "nativeCurrency": {
       "name": "SANR",
@@ -18438,6 +18460,17 @@
       "wss://rpc.gobob.xyz",
       "https://bob-mainnet.public.blastapi.io",
       "wss://bob-mainnet.public.blastapi.io"
+    ]
+  },
+  {
+    "chainId": 60850,
+    "nativeCurrency": {
+      "name": "Ether",
+      "symbol": "ETH",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc-sepolia.perennial.foundation"
     ]
   },
   {
@@ -26062,7 +26095,7 @@
     "chainId": 666301179999,
     "nativeCurrency": {
       "name": "SmartPay Mobile Money",
-      "symbol": "SMRTP",
+      "symbol": "SMM",
       "decimals": 18
     },
     "rpc": [
