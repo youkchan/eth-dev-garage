@@ -2514,7 +2514,7 @@
       "decimals": 18
     },
     "rpc": [
-      "https://happy-testnet-sepolia.rpc.caldera.xyz/http"
+      "https://rpc.testnet.happy.tech/http"
     ]
   },
   {
