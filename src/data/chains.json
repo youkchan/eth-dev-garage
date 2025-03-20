@@ -11484,6 +11484,17 @@
     ]
   },
   {
+    "chainId": 5433,
+    "nativeCurrency": {
+      "name": "Inertia",
+      "symbol": "IRTA",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://rpc.inertiascan.com"
+    ]
+  },
+  {
     "chainId": 5439,
     "nativeCurrency": {
       "name": "EGAX",
@@ -20061,6 +20072,18 @@
     "rpc": [
       "https://phoenix-rpc.plumenetwork.xyz",
       "wss://phoenix-rpc.plumenetwork.xyz"
+    ]
+  },
+  {
+    "chainId": 98867,
+    "nativeCurrency": {
+      "name": "Plume",
+      "symbol": "PLUME",
+      "decimals": 18
+    },
+    "rpc": [
+      "https://testnet-rpc.plumenetwork.xyz",
+      "wss://testnet-rpc.plumenetwork.xyz"
     ]
   },
   {
